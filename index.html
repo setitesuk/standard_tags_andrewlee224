@@ -1,7 +1,22 @@
-<html lang="en">
+<html lang="en" ng-app="tags">
 <head>
 </head>
-<body>
+<body ng-controller="TagsController">
+    {{ tags }}
+    <p>Search: <input ng-model="query"></p>
+    <p>Filter: </p>
+    <p><input type="checkbox" ng-model="start_end"> Start/End
+    <input type="checkbox" ng-model="single_clone_region"> Single Clone Region
+    <input type="checkbox" ng-model="sil_til"> SIL/TIL
+    <input type="checkbox" ng-model="repeat"> Repeat
+    </p>
+    <ul>
+        <li ng-repeat="tag in tags | filter: {text: query} | filter: {features.start_end: start_end}">
+            <span ng-show="tag.type.clone_information">Clone Information</span>
+            <span ng-show="tag.type.feature">Feature</span>
+            <span>Text: {{ tag.text }}</span>
+        </li>
+    </ul>
 
 <script type="text/javascript">
 
@@ -27,7 +42,59 @@ var annotation_tags = { "annotation_tags": [
 'Type:\n[X] Clone Information\n[ ] Feature\nFeatures:\n[ ] Start/End\n[ ] Single Clone Region\n[ ] SIL/TIL\n[ ] Repeat\nText:\nSequence clone length {x}bp'
 ]};
 
+var extractModels = function(tags_data) {
+    var models = [];
+
+    function tagModel() {
+        this.type = {
+            'clone_information': false,
+            'feature': false
+        };
+        this.features = {
+            'start_end': false,
+            'single_clone_region': false,
+            'sil_til': false,
+            'repeat': false
+        };
+        this.text = null;
+    };
+
+    function line_truth_value(line) {
+        // assumption that the format is consistent
+        // and that 'X' is always the second character of the line
+        // if it's present
+        return (line[1] === 'X');
+    };
+
+    tags_data['annotation_tags'].forEach(
+        function(entry) {
+            var model = new tagModel();
+            var lines = entry.split("\n");
+
+            model.type.clone_information = line_truth_value(lines[1]);
+            model.type.feature = line_truth_value(lines[2]);
+
+            model.features.start_end = line_truth_value(lines[4]);
+            model.features.single_clone_region = line_truth_value(lines[5]);
+            model.features.sil_til = line_truth_value(lines[6]);
+            model.features.repeat = line_truth_value(lines[7]);
+
+            if (lines.length > 8) model.text = lines[9];
+
+            models.push(model);
+        }
+    );
+
+    return models;
+};
+
+var tag_models = extractModels(annotation_tags);
+console.log(tag_models);
+
 </script>
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
+<script type="text/javascript" src="app.js"></script>
 </body>
 
 </html>
