@@ -11,7 +11,7 @@
     <input type="checkbox" ng-model="repeat"> Repeat
     </p>
     <ul>
-        <li ng-repeat="tag in tags | filter: {text: query} | filter: {features.start_end: start_end}">
+        <li ng-repeat="tag in tags | filter: {text: query} | filter: filter_tags">
             <span ng-show="tag.type.clone_information">Clone Information</span>
             <span ng-show="tag.type.feature">Feature</span>
             <span>Text: {{ tag.text }}</span>
@@ -84,6 +84,12 @@ var extractModels = function(tags_data) {
             models.push(model);
         }
     );
+
+    models.sort(function(a, b) {
+        if (a.type.clone_information && !b.type.clone_information) return -1;
+        if (b.type.clone_information && !a.type.clone_information) return 1;
+        return 0;
+    });
 
     return models;
 };
