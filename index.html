@@ -1,8 +1,8 @@
 <html lang="en" ng-app="tags">
 <head>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body ng-controller="TagsController">
-    {{ tags }}
     <p>Search: <input ng-model="query"></p>
     <p>Filter: </p>
     <p><input type="checkbox" ng-model="start_end"> Start/End
@@ -12,9 +12,16 @@
     </p>
     <ul>
         <li ng-repeat="tag in tags | filter: {text: query} | filter: filter_tags">
-            <span ng-show="tag.type.clone_information">Clone Information</span>
-            <span ng-show="tag.type.feature">Feature</span>
-            <span>Text: {{ tag.text }}</span>
+            <p>Type:</p>
+            <p>{{ tag.type.clone_information === true ? '[X]' : '[ ]' }} Clone Information</p>
+            <p>{{ tag.type.feature === true ? '[X]' : '[ ]' }} Feature</p>
+            <p>Features:</p>
+            <p>{{ tag.features.start_end === true ? '[X]' : '[ ]' }} Start/End</p>
+            <p>{{ tag.features.single_clone_region === true ? '[X]' : '[ ]' }} Single Clone Region</p>
+            <p>{{ tag.features.sil_til === true ? '[X]' : '[ ]' }} SIL/TIL</p>
+            <p>{{ tag.features.repeat === true ? '[X]' : '[ ]' }} Repeat</p>
+            <p><editable-braces tag-text="tag.text"></editable-braces></p>
+            <button select-parent="select-parent">Select Tag</button>
         </li>
     </ul>
 
@@ -100,6 +107,7 @@ console.log(tag_models);
 </script>
 
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
+<script type="text/javascript" src="js/ui-bootstrap-tpls-0.14.2.min.js"></script>
 <script type="text/javascript" src="app.js"></script>
 </body>
 
