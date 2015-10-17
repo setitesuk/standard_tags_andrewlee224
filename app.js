@@ -1,8 +1,8 @@
 (function() {
 
-var app = angular.module('tags', []);
+var app = angular.module('tags', ['ui.bootstrap']);
 
-app.directive('editableBraces', function() {
+app.directive('editableBraces', function($uibModal) {
 
     var splitTextByBraces = function(text) {
         // split the text by '{' and '}' and
@@ -19,18 +19,31 @@ app.directive('editableBraces', function() {
     };
 
     return {
+        template: "<span ng-click='openModal()'><span>Text: {{ tagText }}</span></span>",
         restrict: 'AE',
         scope: {
-            tagModel: '='
+            tagText: '='
         },
         link: function(scope, element) {
             console.log("in link");
-            element.bind('click', function(e) {
-                console.log("in click");
-                // split the text by '{' and '}' and
-                // create input fields for values inside braces
-                console.log(element);
-                var all_splits = splitTextByBraces(element.text());
+            console.log(element.children().eq(0).children().eq(0));
+            var inner_span = element.children().eq(0).children().eq(0);
+
+            var injectNewValues = function(all_splits, input_values) {
+                ret_string = "";
+                all_splits.forEach(function(split, i) {
+                    if (i % 2 != 0) {
+                        ret_string += '{' + input_values[(i-1)/2] + '}';
+                    } else {
+                        ret_string += split;
+                    }
+                });
+
+                return ret_string;
+            };
+
+            scope.openModal = function() {
+                var all_splits = splitTextByBraces(scope.tagText);
 
                 var num_inputs = (all_splits.length - 1) / 2;
                 scope.input_values = [];
@@ -38,37 +51,34 @@ app.directive('editableBraces', function() {
                     scope.input_values.push(all_splits[i*2 + 1]);
                 }
 
-                console.log(scope.input_values);
-
-                var input_elems = [];
-                var wrapper = angular.element("<span></span>");
-                all_splits.forEach(function(split, i) {
-                    if (i % 2 !== 0) {
-                        // create and append input box
-                        var input = angular.element("<input />");
-                        input.val(split);
-                        wrapper.append(input);
-                    } else {
-                        // append just text
-                        wrapper.append(split);
+                var modalInstance = $uibModal.open({
+                    template: '<p ng-repeat="(i, input_value) in input_values track by i"><input ng-model="input_values[i]" /></p><p><button ng-click="ok()">Save</button></p>',
+                    controller: 'ModalInstanceCtrl',
+                    resolve: {
+                        items: function () {
+                            return {
+                                input_values: scope.input_values
+                            };
+                        }
                     }
                 });
 
-                element.replaceWith(wrapper);
-                element.class(".tag-selected");
+                modalInstance.result.then(
+                    function(input_values) {
+                        console.log("Closing success");
+                        console.log(input_values);
+                        scope.tagText = injectNewValues(all_splits, input_values)
+                    }, function(input_values) {
+                        console.log("Dismiss success");
+                });
+            };
 
-            });
-
-
-            element.bind('blur', function(e) {
-                element.text(scope.tag-model.text);
-            });
         }
     }
 });
 
 app.directive('doNothing', function() {
-    console.log("registering directive");
+
     var link = function(scope, elem, attrs) {
         console.log("in doNothing link");
     };
@@ -106,6 +116,19 @@ app.controller('TagsController', function($scope) {
 
         return found;
 
+    };
+});
+
+app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, items) {
+
+    $scope.input_values = items.input_values;
+
+    $scope.ok = function() {
+        $modalInstance.close($scope.input_values);
+    };
+
+    $scope.cancel = function() {
+        $modalInstance.close($scope.input_values);
     };
 });
 
