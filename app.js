@@ -3,10 +3,17 @@
 var app = angular.module('tags', ['ui.bootstrap']);
 
 app.directive('editableBraces', function($uibModal) {
+    /**
+     * This directive makes it possible to edit parts of text
+     * enclosed in curly braces. When any part of the text is clicked,
+     * a modal which contains editable inputs is opened.
+     * After clicking 'Save' the underlying text model is updated with changes.
+     */
 
     var splitTextByBraces = function(text) {
-        // split the text by '{' and '}' and
-        // create input fields for values inside braces
+        /** split the text by '{' and '}' and
+            create input fields for values inside braces
+        */
         console.log(text);
         var left_splits = text.split('{');
         var all_splits = [];
@@ -26,8 +33,6 @@ app.directive('editableBraces', function($uibModal) {
         },
         link: function(scope, element) {
             console.log("in link");
-            console.log(element.children().eq(0).children().eq(0));
-            var inner_span = element.children().eq(0).children().eq(0);
 
             var injectNewValues = function(all_splits, input_values) {
                 ret_string = "";
@@ -67,9 +72,12 @@ app.directive('editableBraces', function($uibModal) {
                     function(input_values) {
                         console.log("Closing success");
                         console.log(input_values);
+                        input_values.forEach(function(val, i) {
+                            input_values[i] = val.replace(/[{}]/g, ''); //braces not allowed in input
+                        });
                         scope.tagText = injectNewValues(all_splits, input_values)
-                    }, function(input_values) {
-                        console.log("Dismiss success");
+                    }, function() {
+                        console.log("Dismiss");
                 });
             };
 
@@ -77,23 +85,27 @@ app.directive('editableBraces', function($uibModal) {
     }
 });
 
-app.directive('doNothing', function() {
-
-    var link = function(scope, elem, attrs) {
-        console.log("in doNothing link");
-    };
-
+app.directive('selectParent', function ($window) {
     return {
-        restrict: 'E',
-        link: link
+        restrict: 'A',
+        link: function (scope, element) {
+            element.on('click', function () {
+                var selection = $window.getSelection();
+                var range = document.createRange();
+                console.log(element.parent());
+                range.selectNodeContents(element.parent()[0]);
+                range.setEndBefore(element[0]);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            });
+        }
     }
 });
 
 app.controller('TagsController', function($scope) {
     console.log("tag_models in controller");
     console.log(tag_models);
-    $scope.tags = tag_models;
-    $scope.something = "something";
+    $scope.tags = tag_models;   //this variable is in scope from index.html
 
     $scope.filter_tags = function(tag_model) {
         var types = ["clone_information", "feature"];
@@ -128,7 +140,7 @@ app.controller('ModalInstanceCtrl', function ($scope, $modalInstance, items) {
     };
 
     $scope.cancel = function() {
-        $modalInstance.close($scope.input_values);
+        $modalInstance.close();
     };
 });
 
