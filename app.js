@@ -162,9 +162,8 @@ app.factory('extractTagModels', function() {
 app.controller('TagsController',
         ['$scope', 'extractTagModels', 'annotationTags',
         function($scope, extractTagModels, annotationTags) {
-    console.log("tag_models in controller");
-    //console.log(tag_models);
-    $scope.tags = extractTagModels(annotationTags);   //this variable is in scope from index.html
+
+    $scope.tags = extractTagModels(annotationTags);
 
     $scope.filter_tags = function(tag_model) {
         var types = ["clone_information", "feature"];
