@@ -1,6 +1,6 @@
 describe('Tags App', function() {
 
-  describe('Tag list view', function() {
+  describe('tag list view', function() {
 
     beforeEach(function() {
       browser.get('index.html');
@@ -34,5 +34,37 @@ describe('Tags App', function() {
         );
       });
     });
+
+    it('should insert BA123456 into the "end" tag and select the contents', function() {
+
+      // find the end tag
+      var endTagText = element(by.xpath(
+          "//span[contains(text(), 'This is the end of sequence clone')]"));
+
+      expect(endTagText.getText()).toContain("This is the end of sequence clone {clone name}");
+
+      endTagText.click().then(function() {
+        var tagInput = element(by.css('.modal-dialog')).element(by.xpath(".//input"));
+        tagInput.clear();
+        tagInput.sendKeys("BA123456").then(function() {
+            var saveButton = element(by.buttonText('Save'));
+            saveButton.click().then(function() {
+                expect(endTagText.getText()).toContain('This is the end of sequence clone {BA123456}.');
+            })
+        });
+      }).then(function() {
+        // get <li> parent and select contents
+        var endTag = endTagText.element(
+            by.xpath('..')).element(by.xpath('..')).element(by.xpath('..')).element(by.xpath('..'));
+        var selectButton = endTag.element(by.buttonText('Select Tag'));
+        selectButton.click(function() {
+          var selection = window.getSelection();
+
+          expect(selection.toString()).toContain('This is the end of sequence clone {BA123456}.');
+        });
+      });
+
+    });
+
   });
 });
