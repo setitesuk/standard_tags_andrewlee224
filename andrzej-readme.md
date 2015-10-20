@@ -48,11 +48,17 @@ Which should run the http-server instance serving index.html on localhost:8000.
 
 ### Testing
 For e2e tests:
+
+The server must be running as well:
+
+$ npm start
+
 $ protractor test/e2e/protractor.conf.js
 
 This should execute tests in test/e2e/scenarios.js
 
 For unit tests:
+
 $ karma start karma.conf.js
 
 This should execute tests in test/unit/tagsSpec.js
